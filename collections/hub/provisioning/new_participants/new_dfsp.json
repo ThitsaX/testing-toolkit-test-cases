@@ -2,8 +2,8 @@
   "name": "multi",
   "test_cases": [
     {
-      "id": "setup-dfsp-accou-05ee",
-      "name": "Setup DFSP accounts and limits",
+      "id": "setup-dfsp-accounts",
+      "name": "Setup DFSP accounts",
       "meta": {
         "info": "DFSP account"
       },
@@ -24,7 +24,7 @@
           "method": "post",
           "body": {
             "name": "{$inputs.DFSP_NAME}",
-            "currency": "{$inputs.currency}",
+            "currency": "{$inputs.currency1}",
             "isProxy": "{$inputs.isProxy}"
           },
           "headers": {
@@ -47,9 +47,49 @@
               }
             ]
           }
-        },
-        {
-          "id": "Add-initial-pos-limits-",
+          },
+          {
+          "id": "Add",
+          "meta": {
+            "info": "Add DFSP"
+          },
+          "description": "Add DFSP",
+          "apiVersion": {
+            "minorVersion": 0,
+            "majorVersion": 1,
+            "type": "central_admin"
+          },
+          "operationPath": "/participants",
+          "path": "/participants",
+          "method": "post",
+          "body": {
+            "name": "{$inputs.DFSP_NAME}",
+            "currency": "{$inputs.currency2}",
+            "isProxy": "{$inputs.isProxy}"
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "FSPIOP-Source": "{$inputs.hub_operator}"
+          },
+          "url": "{$inputs.HOST_CENTRAL_LEDGER}",
+          "tests": {
+            "assertions": [
+              {
+                "id": "status-201-if-not-exists-400-i",
+                "description": "status to be 201 if not exists or 400 if exists",
+                "exec": [
+                  "if (response.body.errorInformation) {",
+                  "  expect(response.status).to.equal(400)",
+                  "} else {",
+                  "  expect(response.status).to.equal(201)",
+                  "}"
+                ]
+              }
+            ]
+          }
+          },
+          {          
+          "id": "Add-initial-pos-limits-for-currency1",
           "meta": {
             "info": "Add initial position and limits - DFSP"
           },
@@ -66,10 +106,10 @@
             "name": "{$inputs.DFSP_NAME}"
           },
           "body": {
-            "currency": "{$inputs.currency}",
+            "currency": "{$inputs.currency1}",
             "limit": {
               "type": "NET_DEBIT_CAP",
-              "value": "{$inputs.NET_DEBIT_CAP}"
+              "value": 0
             },
             "initialPosition": 0
           },
@@ -94,132 +134,31 @@
             ]
           }
         },
-        {
-          "id": "Get-Status-req-before-deposit",
+        {          
+          "id": "Add-initial-pos-limits-for-currency2",
           "meta": {
-            "info": "DFSP Get Status Request before deposit"
+            "info": "Add initial position and limits - DFSP"
           },
-          "description": "DFSP Get Status Request before deposit",
+          "description": "Add initial position and limits - DFSP",
           "apiVersion": {
             "minorVersion": 0,
             "majorVersion": 1,
             "type": "central_admin"
           },
-          "operationPath": "/participants/{name}/accounts",
-          "path": "/participants/{$inputs.DFSP_NAME}/accounts",
-          "method": "get",
-          "params": {
-            "name": "{$inputs.DFSP_NAME}"
-          },
-          "headers": {
-            "Content-Type": "application/json",
-            "FSPIOP-Source": "{$inputs.hub_operator}"
-          },
-          "url": "{$inputs.HOST_CENTRAL_LEDGER}",
-          "tests": {
-            "assertions": [
-              {
-                "id": "status-200",
-                "description": "status to be 200",
-                "exec": [
-                  "expect(response.status).to.equal(200)"
-                ]
-              }
-            ]
-          },
-          "scripts": {
-            "postRequest": {
-              "exec": [
-                "const jsonData = pm.response.body",
-                "console.log(jsonData)",
-                "for(var i in jsonData) {",
-                "  if(jsonData[i].ledgerAccountType === 'SETTLEMENT' && jsonData[i].currency === pm.environment.get('currency')) {",
-                "    pm.environment.set(\"dfspSettlementAccountId\", jsonData[i].id)",
-                "    pm.environment.set(\"dfspSettlementAccountBalanceBeforeFundsIn\", jsonData[i].value)",
-                "  }",
-                "}"
-              ]
-            }
-          }
-        },
-        {
-          "id": "Deposit-Funds-settle-acc-",
-          "meta": {
-            "info": "Deposit Funds in Settlement Account - DFSP"
-          },
-          "description": "Deposit Funds in Settlement Account - DFSP",
-          "apiVersion": {
-            "minorVersion": 0,
-            "majorVersion": 1,
-            "type": "central_admin"
-          },
-          "operationPath": "/participants/{name}/accounts/{id}",
-          "path": "/participants/{$inputs.DFSP_NAME}/accounts/{$environment.dfspSettlementAccountId}",
+          "operationPath": "/participants/{name}/initialPositionAndLimits",
+          "path": "/participants/{$inputs.DFSP_NAME}/initialPositionAndLimits",
           "method": "post",
           "params": {
-            "name": "{$inputs.DFSP_NAME}",
-            "id": "{$environment.dfspSettlementAccountId}"
-          },
-          "body": {
-            "transferId": "{$environment.dfspfundsInPrepareTransferId}",
-            "externalReference": "string",
-            "action": "recordFundsIn",
-            "reason": "string",
-            "amount": {
-              "amount": "{$inputs.fundsIn}",
-              "currency": "{$inputs.currency}"
-            },
-            "extensionList": {
-              "extension": [
-                {
-                  "key": "string",
-                  "value": "string"
-                }
-              ]
-            }
-          },
-          "headers": {
-            "Content-Type": "application/json",
-            "FSPIOP-Source": "{$inputs.hub_operator}"
-          },
-          "url": "{$inputs.HOST_CENTRAL_LEDGER}",
-          "tests": {
-            "assertions": [
-              {
-                "id": "status-202",
-                "description": "status to be 202",
-                "exec": [
-                  "expect(response.status).to.equal(202)"
-                ]
-              }
-            ]
-          },
-          "scripts": {
-            "preRequest": {
-              "exec": [
-                "var uuid = require('uuid');",
-                "pm.environment.set('dfspfundsInPrepareTransferId', uuid.v4())"
-              ]
-            }
-          }
-        },
-        {
-          "id": "Get-Status-req-after-deposit",
-          "meta": {
-            "info": "DFSP Get Status Request after deposit"
-          },
-          "description": "DFSP Get Status Request after deposit",
-          "apiVersion": {
-            "minorVersion": 0,
-            "majorVersion": 1,
-            "type": "central_admin"
-          },
-          "operationPath": "/participants/{name}/accounts",
-          "path": "/participants/{$inputs.DFSP_NAME}/accounts",
-          "method": "get",
-          "params": {
             "name": "{$inputs.DFSP_NAME}"
           },
+          "body": {
+            "currency": "{$inputs.currency2}",
+            "limit": {
+              "type": "NET_DEBIT_CAP",
+              "value": 0
+            },
+            "initialPosition": 0
+          },
           "headers": {
             "Content-Type": "application/json",
             "FSPIOP-Source": "{$inputs.hub_operator}"
@@ -228,36 +167,19 @@
           "tests": {
             "assertions": [
               {
-                "id": "status-200",
-                "description": "status to be 200",
+                "id": "status-201-if-not-exists-500-i",
+                "description": "status to be 201 if not exists or 500 if exists",
                 "exec": [
-                  "expect(response.status).to.equal(200)"
-                ]
-              },
-              {
-                "id": "settle-acc-bal-After-FundsIn-b",
-                "description": "DFSP Settlement Account Balance After FundsIn should be equal to the balance before plus the transfer amount",
-                "exec": [
-                  "expect(+environment.dfspSettlementAccountBalanceAfterFundsIn).to.equal(+environment.dfspSettlementAccountBalanceBeforeFundsIn - {$inputs.fundsIn})"
+                  "if (response.body.errorInformation) {",
+                  "  expect(response.status).to.equal(500)",
+                  "} else {",
+                  "  expect(response.status).to.equal(201)",
+                  "}"
                 ]
               }
             ]
-          },
-          "delay": "1000",
-          "scripts": {
-            "postRequest": {
-              "exec": [
-                "const jsonData = pm.response.body",
-                "console.log(jsonData)",
-                "for(var i in jsonData) {",
-                "  if(jsonData[i].ledgerAccountType === 'SETTLEMENT' && jsonData[i].currency === pm.environment.get('currency')) {",
-                "    pm.environment.set(\"dfspSettlementAccountBalanceAfterFundsIn\", jsonData[i].value)",
-                "  }",
-                "}"
-              ]
-            }
           }
-        }
+        }        
       ],
       "fileInfo": {
         "path": "hub/provisioning/new_participants/new_dfsp.json"
@@ -1097,7 +1019,7 @@
           "description": "Add callback - FX TRANSFERS POST",
           "meta": {
             "info": "Add callback - FX TRANSFERS POST"
-          },
+          },          
           "apiVersion": {
             "minorVersion": 0,
             "majorVersion": 1,
