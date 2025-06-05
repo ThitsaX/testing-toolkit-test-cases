@@ -946,7 +946,7 @@
               "value": "{$inputs.HOST_ORACLE_MSISDN}",
               "endpointType": "URL"
             },
-            "isDefault": true
+            "isDefault": false
           },
           "headers": {
             "Content-Type": "application/vnd.interoperability.participants+json;version=1.0",
