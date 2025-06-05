@@ -859,63 +859,6 @@
       ]
     },
     {
-      "id": "Register-ACCOUNT_ID-Oracle",
-      "type": "ACCOUNT_ID Oracle Onboarding",
-      "name": "ACCOUNT_ID Oracle Onboarding",
-      "fileInfo": {
-        "path": "hub/provisioning/new_hub/new_hub.json"
-      },
-      "meta": {
-        "info": "ACCOUNT_ID Oracle Onboarding"
-      },
-      "requests": [
-        {
-          "id": "Register-ACCOUNT_ID-Oracle",
-          "meta": {
-            "info": "Register ACCOUNT_ID Oracle"
-          },
-          "description": "Register ACCOUNT_ID Oracle",
-          "apiVersion": {
-            "minorVersion": 1,
-            "majorVersion": 1,
-            "type": "als_admin"
-          },
-          "operationPath": "/oracles",
-          "path": "/oracles",
-          "method": "post",
-          "body": {
-            "oracleIdType": "ACCOUNT_ID",
-            "endpoint": {
-              "value": "{$inputs.HOST_ORACLE_ACCOUNT_ID}",
-              "endpointType": "URL"
-            },
-            "isDefault": true
-          },
-          "headers": {
-            "Content-Type": "application/vnd.interoperability.participants+json;version=1.0",
-            "Accept": "application/vnd.interoperability.participants+json;version=1",
-            "Date": "{$function.generic.curDate}"
-          },
-          "url": "{$inputs.HOST_ACCOUNT_LOOKUP_ADMIN}",
-          "tests": {
-            "assertions": [
-              {
-                "id": "status-201-errorCode-2001-alre",
-                "description": "status to be 201 or errorCode 2001 already exists",
-                "exec": [
-                  "if (response.body.errorInformation) {",
-                  "  expect(response.body.errorInformation.errorCode).to.equal(\"2001\")",
-                  "} else {",
-                  "  expect(response.status).to.equal(201)",
-                  "}"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    },
-    {
       "id": "Register-MSISDN-Oracle",
       "type": "MSISDN Oracle Onboarding",
       "name": "MSISDN Oracle Onboarding",
